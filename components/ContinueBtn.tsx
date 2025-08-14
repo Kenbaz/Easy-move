@@ -1,10 +1,17 @@
 import React from "react";
 import { Pressable, Text, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 
 export default function ContinueButton() {
+  const router = useRouter();
+  const handlePress = () => {
+    // Navigate to the next screen
+    router.push("/blank");
+  };
+
   return (
-    <Pressable style={styles.shadow}>
+    <Pressable style={styles.shadow} onPress={handlePress}>
       <LinearGradient
         colors={["#03AD14", "#008E05"]}
         start={{ x: 0, y: 0.5 }}

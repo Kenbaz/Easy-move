@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link } from "expo-router";
 import ThemedView from "../../components/ThemedView";
-import { Truck, Bell, ChevronsUpDown } from "lucide-react-native";
+import { Bell, ChevronsUpDown } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ContinueButton from "../../components/ContinueBtn"
 import { BlurView } from "expo-blur";
@@ -12,7 +12,10 @@ const Home = () => {
         <View className="px-[20px] h-[9.5%] flex-row justify-between items-center">
           <View className="flex-row items-center gap-1">
             <Text className="text-[1.25rem] font-bold">EasyMove</Text>
-            <Truck />
+            <Image
+              source={require("../../assets/images/hugeicons_truck-delivery.png")}
+              className="w-[24px] h-[24px]"
+            />
           </View>
           <Bell />
         </View>
