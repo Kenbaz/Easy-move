@@ -2,12 +2,6 @@ import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Trash2, PlusCircle } from "lucide-react-native";
 import { useState, useRef } from "react";
 import { useAnimation } from "../context/AnimatedContext";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-    SharedValue
-} from "react-native-reanimated";
 
 // Type definitions
 type ItemId = "bed2" | "mattress2" | "pillow2" | "blanket2" | "wardrobe2";
@@ -32,22 +26,6 @@ export default function ListItemsTwo() {
 
   const { addAnimatedItem, removeAnimatedItem } = useAnimation();
   const itemRefs = useRef<Record<string, View | null>>({});
-
-  // Initialize all animation values at the top level (hooks must be called unconditionally)
-  const bed2Scale = useSharedValue(1);
-  const mattress2Scale = useSharedValue(1);
-  const pillow2Scale = useSharedValue(1);
-  const blanket2Scale = useSharedValue(1);
-  const wardrobe2Scale = useSharedValue(1);
-
-  // Map of scale values
-  const scaleValues: Record<ItemId, SharedValue<number>> = {
-    bed2: bed2Scale,
-    mattress2: mattress2Scale,
-    pillow2: pillow2Scale,
-    blanket2: blanket2Scale,
-    wardrobe2: wardrobe2Scale,
-  };
 
   // Sample data for the list items
   const listItems: ListItem[] = [
@@ -80,13 +58,7 @@ export default function ListItemsTwo() {
 
   // Function to increment item count with animation
   const incrementItem = (item: ListItem) => {
-    // Trigger scale animation on the list item
-    const scaleValue = scaleValues[item.id];
-    if (scaleValue) {
-      scaleValue.value = withSpring(1.1, { damping: 10 }, () => {
-        scaleValue.value = withSpring(1, { damping: 15 });
-      });
-    }
+    // Removed scale animation - no longer scales the original list item
 
     // Get the position of the item for animation start point
     const itemRef = itemRefs.current[item.id];
@@ -98,7 +70,7 @@ export default function ListItemsTwo() {
           title: item.title,
           image: item.image,
           startPosition: {
-            x: x + width / 2 - 40, // Center the animated item
+            x: x + width / 2 - 60, // Adjusted for larger item width
             y: y + height / 2 - 20,
           },
         });
@@ -123,23 +95,17 @@ export default function ListItemsTwo() {
 
   const renderListItem = (item: ListItem) => {
     const count = itemCounts[item.id];
-    const scaleValue = scaleValues[item.id];
-
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        transform: [{ scale: scaleValue?.value || 1 }],
-      };
-    });
 
     return (
-      <Animated.View
+      <View
         key={item.id}
-        style={[styles.list, animatedStyle]}
+        style={styles.list}
         ref={(ref) => {
           itemRefs.current[item.id] = ref as any;
         }}
       >
         <View className="flex-row items-center justify-between">
+          {/* Removed Animated.View wrapper */}
           {/* Left side: Image and Description */}
           <View className="flex-row items-center gap-2 flex-1">
             <Image
@@ -192,7 +158,7 @@ export default function ListItemsTwo() {
             )}
           </View>
         </View>
-      </Animated.View>
+      </View>
     );
   };
 

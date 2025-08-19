@@ -34,20 +34,20 @@ export default function ListItems() {
   const itemRefs = useRef<Record<string, View | null>>({});
 
   // Initialize all animation values at the top level (hooks must be called unconditionally)
-  const bedScale = useSharedValue(1);
-  const mattressScale = useSharedValue(1);
-  const pillowScale = useSharedValue(1);
-  const blanketScale = useSharedValue(1);
-  const wardrobeScale = useSharedValue(1);
+//   const bedScale = useSharedValue(1);
+//   const mattressScale = useSharedValue(1);
+//   const pillowScale = useSharedValue(1);
+//   const blanketScale = useSharedValue(1);
+//   const wardrobeScale = useSharedValue(1);
 
-  // Map of scale values
-  const scaleValues: Record<ItemId, SharedValue<number>> = {
-    bed: bedScale,
-    mattress: mattressScale,
-    pillow: pillowScale,
-    blanket: blanketScale,
-    wardrobe: wardrobeScale,
-  };
+//   // Map of scale values
+//   const scaleValues: Record<ItemId, SharedValue<number>> = {
+//     bed: bedScale,
+//     mattress: mattressScale,
+//     pillow: pillowScale,
+//     blanket: blanketScale,
+//     wardrobe: wardrobeScale,
+//   };
 
   // Sample data for the list items
   const listItems: ListItem[] = [
@@ -81,12 +81,12 @@ export default function ListItems() {
   // Function to increment item count with animation
   const incrementItem = (item: ListItem) => {
     // Trigger scale animation on the list item
-    const scaleValue = scaleValues[item.id];
-    if (scaleValue) {
-      scaleValue.value = withSpring(1.1, { damping: 10 }, () => {
-        scaleValue.value = withSpring(1, { damping: 15 });
-      });
-    }
+    // const scaleValue = scaleValues[item.id];
+    // if (scaleValue) {
+    //   scaleValue.value = withSpring(1.1, { damping: 10 }, () => {
+    //     scaleValue.value = withSpring(1, { damping: 15 });
+    //   });
+    // }
 
     // Get the position of the item for animation start point
     const itemRef = itemRefs.current[item.id];
@@ -98,7 +98,7 @@ export default function ListItems() {
           title: item.title,
           image: item.image,
           startPosition: {
-            x: x + width / 2 - 40, // Center the animated item
+            x: x + width / 2 - 60, // Center the animated item
             y: y + height / 2 - 20,
           },
         });
@@ -123,18 +123,18 @@ export default function ListItems() {
 
   const renderListItem = (item: ListItem) => {
     const count = itemCounts[item.id];
-    const scaleValue = scaleValues[item.id];
+    // const scaleValue = scaleValues[item.id];
 
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        transform: [{ scale: scaleValue?.value || 1 }],
-      };
-    });
+    // const animatedStyle = useAnimatedStyle(() => {
+    //   return {
+    //     transform: [{ scale: scaleValue?.value || 1 }],
+    //   };
+    // });
 
     return (
       <Animated.View
         key={item.id}
-        style={[styles.list, animatedStyle]}
+        style={[styles.list]}
         ref={(ref) => {
           itemRefs.current[item.id] = ref as any;
         }}

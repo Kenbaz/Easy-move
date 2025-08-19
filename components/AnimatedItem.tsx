@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
   withSpring,
   withSequence,
+  withDelay,
   Easing,
 } from "react-native-reanimated";
 
@@ -38,49 +39,68 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
 
   useEffect(() => {
     if (isRemoving) {
-      // Animate back to original position
-      opacity.value = withTiming(0, { duration: 300 });
-      scale.value = withTiming(0.5, { duration: 300 });
-      translateY.value = withSpring(startPosition.y - 50, {
-        damping: 15,
-        stiffness: 100,
+      // Animate back to original position when removing
+      scale.value = withTiming(1, { duration: 400 });
+
+      // Move back to starting position
+      translateX.value = withTiming(startPosition.x, {
+        duration: 500,
+        easing: Easing.in(Easing.quad),
       });
 
-      if (onAnimationComplete) {
-        setTimeout(onAnimationComplete, 300);
-      }
-    } else {
-      // Drop animation
-      scale.value = withSequence(
-        withTiming(1.2, { duration: 150 }),
-        withSpring(0.8, { damping: 10, stiffness: 100 })
-      );
-
-      // Parabolic motion for more natural drop
-      translateX.value = withTiming(endPosition.x, {
-        duration: 600,
-        easing: Easing.out(Easing.quad),
+      translateY.value = withTiming(startPosition.y, {
+        duration: 500,
+        easing: Easing.in(Easing.quad),
       });
 
-      translateY.value = withSequence(
-        // First go up slightly
-        withTiming(startPosition.y - 30, {
-          duration: 150,
-          easing: Easing.out(Easing.quad),
-        }),
+      // Rotate back to original orientation
+      rotation.value = withTiming(0, {
+        duration: 400,
+        easing: Easing.in(Easing.quad),
+      });
 
-        // Then drop down with bounce
-        withSpring(endPosition.y, {
-          damping: 12,
-          stiffness: 80,
-          mass: 1.2,
-          velocity: 5,
+      // Fade out at the end
+      opacity.value = withDelay(
+        400,
+        withTiming(0, {
+          duration: 300,
         })
       );
 
+      if (onAnimationComplete) {
+        setTimeout(onAnimationComplete, 500);
+      }
+    } else {
+      // Drop animation - removed upward bounce
+      scale.value = withSequence(
+        withTiming(1.1, { duration: 150 }),
+        withSpring(0.7, { damping: 10, stiffness: 100 })
+      );
+
+      // Horizontal movement
+      translateX.value = withTiming(endPosition.x, {
+        duration: 700,
+        easing: Easing.out(Easing.quad),
+      });
+
+      // Direct drop down without bounce up
+      translateY.value = withSpring(endPosition.y, {
+        damping: 10,
+        stiffness: 60,
+        mass: 1.5,
+        velocity: 8,
+      });
+
+      // Random rotation for varied final positions (vertical, slanted, etc.)
+      const finalRotation = Math.random() * 180 - 90; // -90 to 90 degrees for full range
+      rotation.value = withTiming(finalRotation, {
+        duration: 700,
+        easing: Easing.out(Easing.quad),
+      });
+
       // Fade in effect
       opacity.value = withSequence(
-        withTiming(0.8, { duration: 100 }),
+        withTiming(0.9, { duration: 100 }),
         withTiming(1, { duration: 200 })
       );
     }
@@ -96,7 +116,6 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
         { rotate: `${rotation.value}deg` },
       ],
       opacity: opacity.value,
-      zIndex: 1000,
     };
   });
 
@@ -115,32 +134,32 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    zIndex: 1000,
   },
   itemContent: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "white",
-    padding: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    gap: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+    gap: 10,
+    minWidth: 200, // Increased minimum width
   },
   image: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32, // Increased from 24
+    height: 32, // Increased from 24
+    borderRadius: 16,
   },
   title: {
-    fontSize: 10,
+    fontSize: 11, // Slightly increased
     fontWeight: "600",
-    maxWidth: 80,
+    maxWidth: 100, // Increased from 80
     color: "#333",
   },
 });
 
-export default AnimatedItemComponent;
+export default AnimatedItemComponent
