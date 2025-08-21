@@ -70,7 +70,7 @@ export default function ListItemsTwo() {
           title: item.title,
           image: item.image,
           startPosition: {
-            x: x + width / 2 - 60, // Adjusted for larger item width
+            x: x + 10,
             y: y + height / 2 - 20,
           },
         });

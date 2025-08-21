@@ -2,12 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Trash2, PlusCircle } from "lucide-react-native";
 import { useState, useRef } from "react";
 import { useAnimation } from "../context/AnimatedContext";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  SharedValue
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 // Type definitions
 type ItemId = "bed" | "mattress" | "pillow" | "blanket" | "wardrobe";
@@ -98,7 +93,7 @@ export default function ListItems() {
           title: item.title,
           image: item.image,
           startPosition: {
-            x: x + width / 2 - 60, // Center the animated item
+            x: x + 10,
             y: y + height / 2 - 20,
           },
         });

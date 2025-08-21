@@ -28,6 +28,7 @@ interface AnimationContextType {
   removeAnimatedItem: (itemId: string) => void;
   getItemCount: (itemId: string) => number;
   clearAnimatedItems: () => void;
+  hasItemsInBox: () => boolean;
 }
 
 const AnimationContext = createContext<AnimationContextType | undefined>(
@@ -58,10 +59,16 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
       boxLayout.x +
       boxPadding +
       Math.random() * (boxLayout.width - itemSize - boxPadding * 2);
+    
+    // Y position start from 50% of box height to ensure items drop deeper
+    const minDepthPercentage = 0.9; // 90% of box height
+    const availableHeight = boxLayout.height - itemSize - boxPadding * 2;
+    const minYOffset = availableHeight * minDepthPercentage;
+    
     const randomY =
       boxLayout.y +
       boxPadding +
-      Math.random() * (boxLayout.height - itemSize - boxPadding * 2);
+      Math.random() * (availableHeight - minYOffset);
 
     // Add some rotation for natural scattered look
     const randomRotation = (Math.random() - 0.5) * 30; // -15 to 15 degrees
@@ -117,6 +124,10 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
     itemCountRef.current = {};
   };
 
+  const hasItemsInBox = () => {
+    return animatedItems.filter((item) => !item.isRemoving).length > 0;
+  };
+
   return (
     <AnimationContext.Provider
       value={{
@@ -127,6 +138,7 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
         removeAnimatedItem,
         getItemCount,
         clearAnimatedItems,
+        hasItemsInBox,
       }}
     >
       {children}

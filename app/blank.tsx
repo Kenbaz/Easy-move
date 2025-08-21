@@ -7,35 +7,90 @@ import ListItems from "../components/ListItems";
 import ListItemsTwo from "../components/ListItemsTwo";
 import { AnimationProvider, useAnimation } from "../context/AnimatedContext";
 import AnimationOverlay from "../components/AnimationOverlay";
+import ViewItemsButton from "../components/ViewItemsButton";
 
 import { Image } from "react-native";
 import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
-import { useRef } from "react";
-import {
+import { useEffect, useRef } from "react";
+import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  withSpring,
 } from "react-native-reanimated";
 
 // Separate component that uses the hook
 function BlankServicesContent() {
-  const { setBoxLayout } = useAnimation();
+  const { setBoxLayout, animatedItems } = useAnimation();
   const boxRef = useRef<View>(null);
+  const boxScale = useSharedValue(1);
   const shakeAnimation = useSharedValue(0);
   const containerWidth = 357;
+  const timeoutRef = useRef<number | null>(null);
+
+  // Calculate if there are items to determine box position
+  const hasItems = animatedItems.filter((item) => !item.isRemoving).length > 0;
+
+  // Animate box up when items are present
+  useEffect(() => {
+    console.log("hasItems changed:", hasItems); // Debug log
+
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (hasItems) {
+      console.log("Scaling down to 0.645"); // Debug log
+      boxScale.value = withSpring(0.745, {
+        damping: 20,
+        stiffness: 150,
+      });
+    } else {
+      console.log("Delaying box scale back to 1 by 2 seconds"); // Debug log
+      // Delay the box scaling back to normal
+      timeoutRef.current = setTimeout(() => {
+        console.log("Scaling back to 1"); // Debug log
+        boxScale.value = withSpring(1, {
+          damping: 20,
+          stiffness: 150,
+        });
+      }, 800);
+    }
+
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [hasItems]);
 
   const animatedBoxStyle = useAnimatedStyle(() => {
     const rotation = shakeAnimation.value * 2;
     const translateX = Math.sin(shakeAnimation.value * Math.PI * 4) * 2;
 
     return {
-      transform: [{ translateX }, { rotate: `${rotation}deg` }],
+      transform: [
+        { translateX },
+        { rotate: `${rotation}deg` },
+        { scale: boxScale.value },
+      ],
     };
   });
 
   const handleLayout = () => {
     if (boxRef.current) {
       boxRef.current.measureInWindow((x, y, width, height) => {
-        setBoxLayout({ x, y, width, height });
+        // Adjust measurements based on current scale
+        const currentScale = boxScale.value;
+        setBoxLayout({
+          x: x + (width * (1 - currentScale)) / 2, // Adjust for scale center offset
+          y: y + (height * (1 - currentScale)) / 2,
+          width: width * currentScale,
+          height: height * currentScale,
+        });
       });
     }
   };
@@ -90,7 +145,11 @@ function BlankServicesContent() {
             </ScrollView>
           </View>
         </View>
-        <View style={[styles.custom2, animatedBoxStyle]}>
+        {/* Back panel - lowest z-index */}
+        <Animated.View
+          style={[styles.custom2, animatedBoxStyle, { zIndex: 8 }]}
+          pointerEvents="none"
+        >
           {/* Radial gradient floor */}
           <View
             className="absolute -bottom-7 left-0 right-0"
@@ -113,7 +172,25 @@ function BlankServicesContent() {
             </Svg>
           </View>
 
-          {/* Back panel - lowest z-index */}
+          {/* Base box image (with ref + onLayout) */}
+          <View
+            ref={boxRef}
+            onLayout={handleLayout}
+            style={{ zIndex: 7, width: 299, height: 180, alignSelf: "center" }}
+          >
+            <Image
+              source={require("../assets/images/Frame 44032.png")}
+              className="mx-auto h-[180px] w-[299px]"
+            />
+          </View>
+        </Animated.View>
+
+        {/* Front panels - highest z-index to appear on top */}
+        <Animated.View
+          style={[styles.custom2, animatedBoxStyle, { zIndex: 6, height: 180, alignSelf: "center" }]}
+          pointerEvents="none"
+        >
+          {/* Back panel */}
           <View
             className="absolute left-[121px] top-[5px]"
             style={{ zIndex: 2 }}
@@ -123,20 +200,6 @@ function BlankServicesContent() {
               className="w-[186px] h-[106px]"
             />
           </View>
-
-          {/* Main box image - for measurement and base structure */}
-          <View
-            ref={boxRef}
-            onLayout={handleLayout}
-            style={{ zIndex: 7, width: 299, margin: "auto" }}
-          >
-            <Image
-              source={require("../assets/images/Frame 44032.png")}
-              className="mx-auto h-[180px] w-[299px]"
-            />
-          </View>
-
-          {/* Front panels - highest z-index to appear on top */}
           <View
             className="absolute right-[65px] top-[19px]"
             style={{ zIndex: 5 }}
@@ -161,11 +224,12 @@ function BlankServicesContent() {
           >
             <Image source={require("../assets/images/Rectangle 4.png")} />
           </View>
-        </View>
+        </Animated.View>
       </View>
 
       {/* Animation Overlay - This renders all animated items */}
-      <AnimationOverlay style={{ zIndex: 5 }} />
+      <AnimationOverlay style={{ zIndex: 7 }} />
+      <ViewItemsButton />
     </ThemedView>
   );
 }

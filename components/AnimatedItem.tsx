@@ -36,11 +36,12 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const rotation = useSharedValue(0);
+  
 
   useEffect(() => {
     if (isRemoving) {
       // Animate back to original position when removing
-      scale.value = withTiming(1, { duration: 400 });
+      scale.value = withTiming(0.9, { duration: 400 });
 
       // Move back to starting position
       translateX.value = withTiming(startPosition.x, {
@@ -73,8 +74,8 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
     } else {
       // Drop animation - removed upward bounce
       scale.value = withSequence(
-        withTiming(1.1, { duration: 150 }),
-        withSpring(0.7, { damping: 10, stiffness: 100 })
+        withTiming(0.8, { duration: 150 }),
+        withSpring(0.55, { damping: 10, stiffness: 100 })
       );
 
       // Horizontal movement
@@ -85,10 +86,10 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
 
       // Direct drop down without bounce up
       translateY.value = withSpring(endPosition.y, {
-        damping: 10,
+        damping: 15,
         stiffness: 60,
         mass: 1.5,
-        velocity: 8,
+        velocity: 0,
       });
 
       // Random rotation for varied final positions (vertical, slanted, etc.)
@@ -139,7 +140,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "white",
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -147,17 +149,17 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
     gap: 10,
-    minWidth: 200, // Increased minimum width
+    minWidth: 200,
   },
   image: {
-    width: 32, // Increased from 24
-    height: 32, // Increased from 24
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 4,
   },
   title: {
-    fontSize: 11, // Slightly increased
+    fontSize: 12,
     fontWeight: "600",
-    maxWidth: 100, // Increased from 80
+    maxWidth: 100,
     color: "#333",
   },
 });
