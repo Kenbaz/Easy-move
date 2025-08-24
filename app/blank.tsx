@@ -8,6 +8,7 @@ import ListItemsTwo from "../components/ListItemsTwo";
 import { AnimationProvider, useAnimation } from "../context/AnimatedContext";
 import AnimationOverlay from "../components/AnimationOverlay";
 import ViewItemsButton from "../components/ViewItemsButton";
+import PreviewHeader from "../components/PreviewHeader";
 
 import { Image } from "react-native";
 import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
@@ -16,41 +17,81 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
+  Easing,
 } from "react-native-reanimated";
+import PreviewActionButtons from "../components/PreviewActionButtons";
+import PreviewListContainer from "../components/PreviewListContainer";
 
 // Separate component that uses the hook
 function BlankServicesContent() {
-  const { setBoxLayout, animatedItems } = useAnimation();
+  const { setBoxLayout, animatedItems, previewMode } = useAnimation();
   const boxRef = useRef<View>(null);
   const boxScale = useSharedValue(1);
   const shakeAnimation = useSharedValue(0);
+  const boxTranslateY = useSharedValue(0);
+  const searchOpacity = useSharedValue(1);
+  const searchTranslateY = useSharedValue(0);
   const containerWidth = 357;
   const timeoutRef = useRef<number | null>(null);
 
   // Calculate if there are items to determine box position
   const hasItems = animatedItems.filter((item) => !item.isRemoving).length > 0;
 
+  // Animate search section when preview mode changes
+  useEffect(() => {
+    if (previewMode) {
+      // Hide search section when preview starts
+      searchOpacity.value = withTiming(0, {
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
+      });
+      searchTranslateY.value = withTiming(-20, {
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+      });
+    } else {
+      // Show search section when preview ends
+      searchOpacity.value = withTiming(1, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+      searchTranslateY.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+  }, [previewMode]);
+
   // Animate box up when items are present
   useEffect(() => {
-    console.log("hasItems changed:", hasItems); // Debug log
-
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
 
-    if (hasItems) {
-      console.log("Scaling down to 0.645"); // Debug log
+    if (previewMode) {
+      boxScale.value = withSpring(0.42, {
+        damping: 20,
+        stiffness: 150,
+      });
+       boxTranslateY.value = withSpring(80, {
+         damping: 20,
+         stiffness: 150,
+       });
+    } else if (hasItems) {
       boxScale.value = withSpring(0.745, {
         damping: 20,
         stiffness: 150,
       });
+       boxTranslateY.value = withSpring(0, {
+         damping: 20,
+         stiffness: 150,
+       });
     } else {
-      console.log("Delaying box scale back to 1 by 2 seconds"); // Debug log
       // Delay the box scaling back to normal
       timeoutRef.current = setTimeout(() => {
-        console.log("Scaling back to 1"); // Debug log
         boxScale.value = withSpring(1, {
           damping: 20,
           stiffness: 150,
@@ -65,7 +106,7 @@ function BlankServicesContent() {
         timeoutRef.current = null;
       }
     };
-  }, [hasItems]);
+  }, [hasItems, previewMode]);
 
   const animatedBoxStyle = useAnimatedStyle(() => {
     const rotation = shakeAnimation.value * 2;
@@ -74,11 +115,17 @@ function BlankServicesContent() {
     return {
       transform: [
         { translateX },
+        { translateY: boxTranslateY.value },
         { rotate: `${rotation}deg` },
         { scale: boxScale.value },
       ],
     };
   });
+
+  const searchStyle = useAnimatedStyle(() => ({
+    opacity: searchOpacity.value,
+    transform: [{ translateY: searchTranslateY.value }],
+  }));
 
   const handleLayout = () => {
     if (boxRef.current) {
@@ -86,7 +133,7 @@ function BlankServicesContent() {
         // Adjust measurements based on current scale
         const currentScale = boxScale.value;
         setBoxLayout({
-          x: x + (width * (1 - currentScale)) / 2, // Adjust for scale center offset
+          x: x + (width * (1 - currentScale)) / 2,
           y: y + (height * (1 - currentScale)) / 2,
           width: width * currentScale,
           height: height * currentScale,
@@ -97,54 +144,63 @@ function BlankServicesContent() {
 
   return (
     <ThemedView safeArea={true} className="border relative bg-white">
-      <View className="bg-white h-[9.5%] items-center justify-center">
-        <View className="border border-gray-100 flex-row px-5 gap-2 bg-gray-100 rounded-[50px] items-center mx-auto h-[50px] w-[366px]">
-          <Search width={16} height={16} />
-          <TextInput
-            placeholder="Search for an item"
-            className="h-full w-[94%]"
-          />
-        </View>
-      </View>
+      {!previewMode && (
+        <Animated.View
+          style={[searchStyle]}
+          className="bg-white h-[9.5%] items-center justify-center"
+        >
+          <View className="border border-gray-100 flex-row px-5 gap-2 bg-gray-100 rounded-[50px] items-center mx-auto h-[50px] w-[366px]">
+            <Search width={16} height={16} />
+            <TextInput
+              placeholder="Search for an item"
+              className="h-full w-[94%]"
+            />
+          </View>
+        </Animated.View>
+      )}
       <View className="bg-gray-100 h-full">
-        <View className="h-[393px] gap-[23px] pt-5">
-          <View className="flex-row mx-auto items-center justify-between w-[401px] border border-gray-100 h-[55px] rounded-[10px] bg-[#FFFFFF] px-4">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="bed-outline" size={24} />
-              <Text className="font-semibold text-sm">Bedroom</Text>
+        {previewMode ? (
+          <PreviewListContainer />
+        ) : (
+          <View className="h-[393px] gap-[23px] pt-5">
+            <View className="flex-row mx-auto items-center justify-between w-[401px] border border-gray-100 h-[55px] rounded-[10px] bg-[#FFFFFF] px-4">
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="bed-outline" size={24} />
+                <Text className="font-semibold text-sm">Bedroom</Text>
+              </View>
+              <ChevronsDownUp width={13} height={13} />
             </View>
-            <ChevronsDownUp width={13} height={13} />
-          </View>
-          <View className="flex-1">
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={containerWidth + 15}
-              decelerationRate="fast"
-              contentContainerStyle={{
-                paddingHorizontal: 15,
-              }}
-              style={{
-                flex: 1,
-              }}
-            >
-              {/* First Container */}
-              <View style={styles.custom}>
-                <View className="border flex-1 w-[357px] bg-[#FFFFFF] rounded-2xl gap-[10px] border-gray-100">
-                  <ListItems />
+            <View className="flex-1">
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={containerWidth + 15}
+                decelerationRate="fast"
+                contentContainerStyle={{
+                  paddingHorizontal: 15,
+                }}
+                style={{
+                  flex: 1,
+                }}
+              >
+                {/* First Container */}
+                <View style={styles.custom}>
+                  <View className="border flex-1 w-[357px] bg-[#FFFFFF] rounded-2xl gap-[10px] border-gray-100">
+                    <ListItems />
+                  </View>
                 </View>
-              </View>
 
-              {/* Second Container */}
-              <View>
-                <View className="border flex-1 w-[357px] bg-[#FFFFFF] rounded-2xl gap-[10px] border-gray-100">
-                  <ListItemsTwo />
+                {/* Second Container */}
+                <View>
+                  <View className="border flex-1 w-[357px] bg-[#FFFFFF] rounded-2xl gap-[10px] border-gray-100">
+                    <ListItemsTwo />
+                  </View>
                 </View>
-              </View>
-            </ScrollView>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        )}
         {/* Back panel - lowest z-index */}
         <Animated.View
           style={[styles.custom2, animatedBoxStyle, { zIndex: 8 }]}
@@ -187,7 +243,11 @@ function BlankServicesContent() {
 
         {/* Front panels - highest z-index to appear on top */}
         <Animated.View
-          style={[styles.custom2, animatedBoxStyle, { zIndex: 6, height: 180, alignSelf: "center" }]}
+          style={[
+            styles.custom2,
+            animatedBoxStyle,
+            { zIndex: 6, height: 180, alignSelf: "center" },
+          ]}
           pointerEvents="none"
         >
           {/* Back panel */}
@@ -229,7 +289,12 @@ function BlankServicesContent() {
 
       {/* Animation Overlay - This renders all animated items */}
       <AnimationOverlay style={{ zIndex: 7 }} />
+
+      <PreviewHeader />
+
       <ViewItemsButton />
+
+      <PreviewActionButtons />
     </ThemedView>
   );
 }

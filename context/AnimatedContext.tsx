@@ -29,6 +29,12 @@ interface AnimationContextType {
   getItemCount: (itemId: string) => number;
   clearAnimatedItems: () => void;
   hasItemsInBox: () => boolean;
+  previewMode: boolean;
+  startPreview: () => void;
+  stopPreview: () => void;
+  // Store list item positions for preview animation
+  listItemLayouts: Record<string, LayoutRectangle>;
+  setListItemLayout: (itemId: string, layout: LayoutRectangle) => void;
 }
 
 const AnimationContext = createContext<AnimationContextType | undefined>(
@@ -42,6 +48,22 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
   const [boxLayout, setBoxLayout] = useState<LayoutRectangle | null>(null);
   const itemCountRef = useRef<Record<string, number>>({});
 
+  const [previewMode, setPreviewMode] = useState(false);
+  const startPreview = () => setPreviewMode(true);
+  const stopPreview = () => setPreviewMode(false);
+
+  // Store list item layouts
+  const [listItemLayouts, setListItemLayouts] = useState<
+    Record<string, LayoutRectangle>
+  >({});
+
+  const setListItemLayout = (itemId: string, layout: LayoutRectangle) => {
+    setListItemLayouts((prev) => ({
+      ...prev,
+      [itemId]: layout,
+    }));
+  };
+
   const addAnimatedItem = (
     item: Omit<AnimatedItem, "id" | "timestamp" | "endPosition">
   ) => {
@@ -53,25 +75,20 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
 
     // Calculate random end position within the box
     const boxPadding = 20;
-    const itemSize = 200; // Approximate size of the dropped item
+    const itemSize = 200;
 
     const randomX =
       boxLayout.x +
       boxPadding +
       Math.random() * (boxLayout.width - itemSize - boxPadding * 2);
-    
+
     // Y position start from 50% of box height to ensure items drop deeper
     const minDepthPercentage = 0.9; // 90% of box height
     const availableHeight = boxLayout.height - itemSize - boxPadding * 2;
     const minYOffset = availableHeight * minDepthPercentage;
-    
-    const randomY =
-      boxLayout.y +
-      boxPadding +
-      Math.random() * (availableHeight - minYOffset);
 
-    // Add some rotation for natural scattered look
-    const randomRotation = (Math.random() - 0.5) * 30; // -15 to 15 degrees
+    const randomY =
+      boxLayout.y + boxPadding + Math.random() * (availableHeight - minYOffset);
 
     const newItem: AnimatedItem = {
       ...item,
@@ -111,7 +128,7 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
       // Remove the item after animation completes
       setTimeout(() => {
         setAnimatedItems((prev) => prev.filter((item) => !item.isRemoving));
-      }, 600); // Match the animation duration
+      }, 600);
     }
   };
 
@@ -139,6 +156,13 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
         getItemCount,
         clearAnimatedItems,
         hasItemsInBox,
+
+        previewMode,
+        startPreview,
+        stopPreview,
+
+        listItemLayouts,
+        setListItemLayout,
       }}
     >
       {children}

@@ -8,30 +8,40 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useAnimation } from "../context/AnimatedContext";
-import { Colors } from "../constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { height: screenHeight } = Dimensions.get("window");
 
 const ViewItemsButton: React.FC = () => {
-  const { animatedItems, boxLayout } = useAnimation();
+  const { animatedItems, boxLayout, startPreview, previewMode } =
+    useAnimation();
   const translateY = useSharedValue(150);
   const opacity = useSharedValue(0);
   const timeoutRef = useRef<number | null>(null);
 
-  // Calculate if there are items in the box
   const hasItems = animatedItems.filter((item) => !item.isRemoving).length > 0;
   const totalItems = animatedItems.filter((item) => !item.isRemoving).length;
 
   useEffect(() => {
-    // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
 
+    // If preview is open, slide the button down and hide
+    if (previewMode) {
+      opacity.value = withTiming(0, {
+        duration: 200,
+        easing: Easing.in(Easing.quad),
+      });
+      translateY.value = withTiming(150, {
+        duration: 350,
+        easing: Easing.in(Easing.quad),
+      });
+      return;
+    }
+
     if (hasItems) {
-      // Animate button up from below the screen immediately
       translateY.value = withSpring(-20, {
         damping: 20,
         stiffness: 150,
@@ -42,11 +52,7 @@ const ViewItemsButton: React.FC = () => {
         easing: Easing.out(Easing.quad),
       });
     } else {
-      console.log("Delaying button animation DOWN by 2 seconds");
-      // Delay the button animation down
       timeoutRef.current = setTimeout(() => {
-        console.log("Animating button DOWN");
-        // Animate button down off the screen
         opacity.value = withTiming(0, {
           duration: 200,
           easing: Easing.in(Easing.quad),
@@ -58,14 +64,13 @@ const ViewItemsButton: React.FC = () => {
       }, 500);
     }
 
-    // Cleanup function
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
     };
-  }, [hasItems, animatedItems.length]);
+  }, [hasItems, animatedItems.length, previewMode]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -74,18 +79,14 @@ const ViewItemsButton: React.FC = () => {
     };
   });
 
-  // Position the button at a fixed location relative to the screen bottom
-  const buttonTop = boxLayout 
-    ? Math.min(
-        boxLayout.y + boxLayout.height + 30, // Closer to box when it's pushed up
-        screenHeight - 85 // Ensure button is always visible with 120px from bottom
-      )
+  const buttonTop = boxLayout
+    ? Math.min(boxLayout.y + boxLayout.height + 30, screenHeight - 85)
     : screenHeight - 150;
 
   return (
     <Animated.View
       style={[styles.container, { top: buttonTop }, animatedStyle]}
-      pointerEvents={hasItems ? "auto" : "none"}
+      pointerEvents={hasItems && !previewMode ? "auto" : "none"}
     >
       <Pressable
         style={({ pressed }) => [
@@ -93,7 +94,9 @@ const ViewItemsButton: React.FC = () => {
           pressed && styles.buttonPressed,
         ]}
         onPress={() => {
-          console.log("View items pressed");
+          if (hasItems && !previewMode) {
+            startPreview();
+          }
         }}
       >
         <LinearGradient

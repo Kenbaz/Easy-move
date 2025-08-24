@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Trash2, PlusCircle } from "lucide-react-native";
 import { useState, useRef } from "react";
@@ -25,24 +26,13 @@ export default function ListItems() {
     wardrobe: 0,
   });
 
-  const { addAnimatedItem, removeAnimatedItem } = useAnimation();
+  const {
+    addAnimatedItem,
+    removeAnimatedItem,
+    previewMode,
+    setListItemLayout,
+  } = useAnimation();
   const itemRefs = useRef<Record<string, View | null>>({});
-
-  // Initialize all animation values at the top level (hooks must be called unconditionally)
-//   const bedScale = useSharedValue(1);
-//   const mattressScale = useSharedValue(1);
-//   const pillowScale = useSharedValue(1);
-//   const blanketScale = useSharedValue(1);
-//   const wardrobeScale = useSharedValue(1);
-
-//   // Map of scale values
-//   const scaleValues: Record<ItemId, SharedValue<number>> = {
-//     bed: bedScale,
-//     mattress: mattressScale,
-//     pillow: pillowScale,
-//     blanket: blanketScale,
-//     wardrobe: wardrobeScale,
-//   };
 
   // Sample data for the list items
   const listItems: ListItem[] = [
@@ -73,16 +63,26 @@ export default function ListItems() {
     },
   ];
 
+  // NEW: Measure list item positions for preview animation
+  const measureListItemPosition = (item: ListItem) => {
+    const itemRef = itemRefs.current[item.id];
+    if (itemRef) {
+      itemRef.measureInWindow((x, y, width, height) => {
+        setListItemLayout(item.id, { x, y, width, height });
+      });
+    }
+  };
+
+  // Measure positions on mount and when preview mode changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      listItems.forEach(measureListItemPosition);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [previewMode]);
+
   // Function to increment item count with animation
   const incrementItem = (item: ListItem) => {
-    // Trigger scale animation on the list item
-    // const scaleValue = scaleValues[item.id];
-    // if (scaleValue) {
-    //   scaleValue.value = withSpring(1.1, { damping: 10 }, () => {
-    //     scaleValue.value = withSpring(1, { damping: 15 });
-    //   });
-    // }
-
     // Get the position of the item for animation start point
     const itemRef = itemRefs.current[item.id];
     if (itemRef) {
@@ -118,13 +118,6 @@ export default function ListItems() {
 
   const renderListItem = (item: ListItem) => {
     const count = itemCounts[item.id];
-    // const scaleValue = scaleValues[item.id];
-
-    // const animatedStyle = useAnimatedStyle(() => {
-    //   return {
-    //     transform: [{ scale: scaleValue?.value || 1 }],
-    //   };
-    // });
 
     return (
       <Animated.View
@@ -132,6 +125,10 @@ export default function ListItems() {
         style={[styles.list]}
         ref={(ref) => {
           itemRefs.current[item.id] = ref as any;
+          // Measure when ref is set
+          if (ref) {
+            setTimeout(() => measureListItemPosition(item), 50);
+          }
         }}
       >
         <View className="flex-row items-center justify-between">

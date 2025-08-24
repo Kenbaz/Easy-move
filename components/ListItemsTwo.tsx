@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Trash2, PlusCircle } from "lucide-react-native";
 import { useState, useRef } from "react";
@@ -24,7 +25,12 @@ export default function ListItemsTwo() {
     wardrobe2: 0,
   });
 
-  const { addAnimatedItem, removeAnimatedItem } = useAnimation();
+  const {
+    addAnimatedItem,
+    removeAnimatedItem,
+    previewMode,
+    setListItemLayout,
+  } = useAnimation();
   const itemRefs = useRef<Record<string, View | null>>({});
 
   // Sample data for the list items
@@ -56,9 +62,26 @@ export default function ListItemsTwo() {
     },
   ];
 
+  // NEW: Measure list item positions for preview animation
+  const measureListItemPosition = (item: ListItem) => {
+    const itemRef = itemRefs.current[item.id];
+    if (itemRef) {
+      itemRef.measureInWindow((x, y, width, height) => {
+        setListItemLayout(item.id, { x, y, width, height });
+      });
+    }
+  };
+
+  // Measure positions on mount and when preview mode changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      listItems.forEach(measureListItemPosition);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [previewMode]);
+
   // Function to increment item count with animation
   const incrementItem = (item: ListItem) => {
-    // Removed scale animation - no longer scales the original list item
 
     // Get the position of the item for animation start point
     const itemRef = itemRefs.current[item.id];
@@ -99,14 +122,16 @@ export default function ListItemsTwo() {
     return (
       <View
         key={item.id}
-        style={styles.list}
+        style={[styles.list]}
         ref={(ref) => {
           itemRefs.current[item.id] = ref as any;
+          // Measure when ref is set
+          if (ref) {
+            setTimeout(() => measureListItemPosition(item), 50);
+          }
         }}
       >
         <View className="flex-row items-center justify-between">
-          {/* Removed Animated.View wrapper */}
-          {/* Left side: Image and Description */}
           <View className="flex-row items-center gap-2 flex-1">
             <Image
               source={item.image}
