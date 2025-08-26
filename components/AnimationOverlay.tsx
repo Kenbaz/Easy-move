@@ -44,7 +44,10 @@ const AnimationOverlay: React.FC<Props> = ({ style }) => {
   const bulkOffsetY = boxLayout ? boxLayout.height + 40 : 200;
 
   return (
-    <View style={{ position: "absolute", ...style }} pointerEvents="none">
+    <View
+      style={{ position: "absolute", ...style }}
+      pointerEvents={previewMode ? "auto" : "none"}
+    >
       {animatedItems.map((item) => {
         const index = sortedForList.findIndex((x) => x.id === item.id);
         const lineupPosition =

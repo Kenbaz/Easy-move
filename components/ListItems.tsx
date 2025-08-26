@@ -31,7 +31,9 @@ export default function ListItems() {
     removeAnimatedItem,
     previewMode,
     setListItemLayout,
+    getItemCount,
   } = useAnimation();
+
   const itemRefs = useRef<Record<string, View | null>>({});
 
   // Sample data for the list items
@@ -99,25 +101,15 @@ export default function ListItems() {
         });
       });
     }
-
-    setItemCounts((prev) => ({
-      ...prev,
-      [item.id]: prev[item.id] + 1,
-    }));
   };
 
   // Function to decrement item count
   const decrementItem = (itemId: ItemId) => {
     removeAnimatedItem(itemId);
-
-    setItemCounts((prev) => ({
-      ...prev,
-      [itemId]: Math.max(0, prev[itemId] - 1),
-    }));
   };
 
   const renderListItem = (item: ListItem) => {
-    const count = itemCounts[item.id];
+    const count = getItemCount(item.id);
 
     return (
       <Animated.View

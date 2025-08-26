@@ -35,6 +35,8 @@ interface AnimationContextType {
   // Store list item positions for preview animation
   listItemLayouts: Record<string, LayoutRectangle>;
   setListItemLayout: (itemId: string, layout: LayoutRectangle) => void;
+  incrementItemCount: (itemId: string) => void;
+  decrementItemCount: (itemId: string) => void;
 }
 
 const AnimationContext = createContext<AnimationContextType | undefined>(
@@ -141,6 +143,16 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
     itemCountRef.current = {};
   };
 
+  const incrementItemCount = (itemId: string) => {
+    itemCountRef.current[itemId] = (itemCountRef.current[itemId] || 0) + 1;
+  };
+
+  const decrementItemCount = (itemId: string) => {
+    if (itemCountRef.current[itemId] && itemCountRef.current[itemId] > 0) {
+      itemCountRef.current[itemId]--;
+    }
+  };
+
   const hasItemsInBox = () => {
     return animatedItems.filter((item) => !item.isRemoving).length > 0;
   };
@@ -163,6 +175,8 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
 
         listItemLayouts,
         setListItemLayout,
+        incrementItemCount,
+        decrementItemCount,
       }}
     >
       {children}

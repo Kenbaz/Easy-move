@@ -59,8 +59,11 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
   const opacity = useSharedValue(1);
   const rotation = useSharedValue(0);
 
-  const { addAnimatedItem, removeAnimatedItem, getItemCount, listItemLayouts } =
-    useAnimation();
+  const {
+    addAnimatedItem,
+    removeAnimatedItem,
+    getItemCount,
+  } = useAnimation();
   const count = getItemCount(itemId);
 
   const phaseTimeoutRef = useRef<number | null>(null);
@@ -119,46 +122,67 @@ const AnimatedItemComponent: React.FC<AnimatedItemProps> = ({
   }, [isRemoving]);
 
   // Preview animation - position items in unified list
-  useEffect(() => {
-    if (!previewMode || isRemoving) return;
+ useEffect(() => {
+   if (isRemoving) return;
 
-    // Calculate position for unified preview list
-    const ITEM_HEIGHT = 60; // Height of each preview item
-    const ITEM_WIDTH = screenWidth - 40;
-    const TOP_OFFSET = 140;
+   if (previewMode) {
+     // Calculate position for unified preview list
+     const ITEM_HEIGHT = 60;
+     const ITEM_WIDTH = screenWidth - 40;
+     const TOP_OFFSET = 140;
 
-    // Position items in a vertical stack without gaps
-    const targetX = (screenWidth - ITEM_WIDTH) / 2.2;
-    const targetY = TOP_OFFSET + previewIndex * ITEM_HEIGHT;
+     const targetX = (screenWidth - ITEM_WIDTH) / 2.2;
+     const targetY = TOP_OFFSET + previewIndex * ITEM_HEIGHT;
 
-    translateX.value = withTiming(targetX, {
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-    });
+     translateX.value = withTiming(targetX, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
 
-    translateY.value = withTiming(targetY, {
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-    });
+     translateY.value = withTiming(targetY, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
 
-    // Reset scale and rotation smoothly
-    scale.value = withTiming(1, {
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-    });
+     scale.value = withTiming(1, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
 
-    rotation.value = withTiming(0, {
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-    });
+     rotation.value = withTiming(0, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
+   } else if (
+     translateX.value !== endPosition.x ||
+     translateY.value !== endPosition.y
+   ) {
+     // Only animate back to box if we're actually returning from preview mode
+     // AND the item has been moved from its box position
+     translateX.value = withTiming(endPosition.x, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
 
-    return () => {
-      if (phaseTimeoutRef.current) {
-        clearTimeout(phaseTimeoutRef.current);
-        phaseTimeoutRef.current = null;
-      }
-    };
-  }, [previewMode, previewIndex, isRemoving]);
+     translateY.value = withSpring(endPosition.y, {
+       damping: 15,
+       stiffness: 60,
+       mass: 1.5,
+       velocity: 0,
+     });
+
+     scale.value = withTiming(0.55, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
+
+     const finalRotation = Math.random() * 180 - 90;
+     rotation.value = withTiming(finalRotation, {
+       duration: 600,
+       easing: Easing.out(Easing.cubic),
+     });
+   }
+ }, [previewMode, previewIndex]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
