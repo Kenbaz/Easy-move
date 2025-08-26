@@ -1,5 +1,5 @@
 import ThemedView from "../components/ThemedView";
-import { StyleSheet, Text, TextInput, View, ScrollView } from "react-native";
+import { StyleSheet, Text, TextInput, View, ScrollView, Pressable } from "react-native";
 
 import { Search, ChevronsDownUp } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,10 +22,19 @@ import Animated, {
 } from "react-native-reanimated";
 import PreviewActionButtons from "../components/PreviewActionButtons";
 import PreviewListContainer from "../components/PreviewListContainer";
+import ServiceOptionsOverlay from "../components/ServiceOptionsOverlay";
 
 // Separate component that uses the hook
 function BlankServicesContent() {
-  const { setBoxLayout, animatedItems, previewMode } = useAnimation();
+  const {
+    setBoxLayout,
+    animatedItems,
+    previewMode,
+    serviceOptionsVisible,
+    showServiceOptions,
+    hideServiceOptions,
+  } = useAnimation();
+
   const boxRef = useRef<View>(null);
   const boxScale = useSharedValue(1);
   const shakeAnimation = useSharedValue(0);
@@ -163,13 +172,16 @@ function BlankServicesContent() {
           <PreviewListContainer />
         ) : (
           <View className="h-[393px] gap-[23px] pt-5">
-            <View className="flex-row mx-auto items-center justify-between w-[401px] border border-gray-100 h-[55px] rounded-[10px] bg-[#FFFFFF] px-4">
+            <Pressable
+              onPress={showServiceOptions}
+              className="bedroom-container flex-row mx-auto items-center justify-between w-[401px] border border-gray-100 h-[55px] rounded-[10px] bg-[#FFFFFF] px-4"
+            >
               <View className="flex-row items-center gap-2">
                 <Ionicons name="bed-outline" size={24} />
                 <Text className="font-semibold text-sm">Bedroom</Text>
               </View>
               <ChevronsDownUp width={13} height={13} />
-            </View>
+            </Pressable>
             <View className="flex-1">
               <ScrollView
                 horizontal
@@ -295,6 +307,11 @@ function BlankServicesContent() {
       <ViewItemsButton />
 
       <PreviewActionButtons />
+
+      <ServiceOptionsOverlay
+        isVisible={serviceOptionsVisible}
+        onClose={hideServiceOptions}
+      />
     </ThemedView>
   );
 }

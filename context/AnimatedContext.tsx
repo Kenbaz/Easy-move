@@ -37,6 +37,10 @@ interface AnimationContextType {
   setListItemLayout: (itemId: string, layout: LayoutRectangle) => void;
   incrementItemCount: (itemId: string) => void;
   decrementItemCount: (itemId: string) => void;
+
+  serviceOptionsVisible: boolean;
+  showServiceOptions: () => void;
+  hideServiceOptions: () => void;
 }
 
 const AnimationContext = createContext<AnimationContextType | undefined>(
@@ -51,8 +55,14 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
   const itemCountRef = useRef<Record<string, number>>({});
 
   const [previewMode, setPreviewMode] = useState(false);
+
   const startPreview = () => setPreviewMode(true);
   const stopPreview = () => setPreviewMode(false);
+
+  // Add overlay state
+  const [serviceOptionsVisible, setServiceOptionsVisible] = useState(false);
+  const showServiceOptions = () => setServiceOptionsVisible(true);
+  const hideServiceOptions = () => setServiceOptionsVisible(false);
 
   // Store list item layouts
   const [listItemLayouts, setListItemLayouts] = useState<
@@ -177,6 +187,10 @@ export const AnimationProvider: React.FC<{ children: ReactNode }> = ({
         setListItemLayout,
         incrementItemCount,
         decrementItemCount,
+
+        serviceOptionsVisible,
+        showServiceOptions,
+        hideServiceOptions,
       }}
     >
       {children}
