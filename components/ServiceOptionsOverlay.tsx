@@ -8,7 +8,6 @@ import Animated, {
   withTiming,
   runOnJS,
   interpolate,
-  Extrapolate,
 } from "react-native-reanimated";
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler"
 import { Bed, Bath, Refrigerator, Table, Sofa, LampDesk, ChevronRight, Home, Trees, Users} from "lucide-react-native";
@@ -77,14 +76,14 @@ const ServiceOptionsOverlay: React.FC<ServiceOptionsOverlayProps> = ({ isVisible
         translateY.value,
         [SCREEN_HEIGHT - OVERLAY_HEIGHT, SCREEN_HEIGHT],
         [0.5, 0],
-        Extrapolate.CLAMP
+        "clamp"
       );
       return {
         opacity: opacity.value * backdropOpacity,
       };
     });
 
-    if (!isVisible && opacity.value === 0) return null;
+    if (!isVisible) return null;
 
     return (
       <GestureHandlerRootView
@@ -262,7 +261,7 @@ const ServiceOptionsOverlay: React.FC<ServiceOptionsOverlayProps> = ({ isVisible
               locations={[0.0218, 1]}
               style={styles.button}
             >
-              <Text style={styles.text}>Continue</Text>
+              <Text style={styles.text}>Close</Text>
             </LinearGradient>
           </Pressable>
         </Animated.View>

@@ -10,7 +10,7 @@ import AnimationOverlay from "../components/AnimationOverlay";
 import ViewItemsButton from "../components/ViewItemsButton";
 import PreviewHeader from "../components/PreviewHeader";
 
-import { Image } from "react-native";
+import { Image } from "expo-image";
 import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
 import { useEffect, useRef } from "react";
 import Animated, {
@@ -139,20 +139,18 @@ function BlankServicesContent() {
   const handleLayout = () => {
     if (boxRef.current) {
       boxRef.current.measureInWindow((x, y, width, height) => {
-        // Adjust measurements based on current scale
-        const currentScale = boxScale.value;
         setBoxLayout({
-          x: x + (width * (1 - currentScale)) / 2,
-          y: y + (height * (1 - currentScale)) / 2,
-          width: width * currentScale,
-          height: height * currentScale,
+          x,
+          y,
+          width,
+          height,
         });
       });
     }
   };
 
   return (
-    <ThemedView safeArea={true} className="border relative bg-white">
+    <ThemedView safeArea={true} className="relative bg-white">
       {!previewMode && (
         <Animated.View
           style={[searchStyle]}
@@ -248,7 +246,10 @@ function BlankServicesContent() {
           >
             <Image
               source={require("../assets/images/Frame 44032.png")}
-              className="mx-auto h-[180px] w-[299px]"
+              style={{ width: 299, height: 180 }}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
             />
           </View>
         </Animated.View>
@@ -264,37 +265,64 @@ function BlankServicesContent() {
         >
           {/* Back panel */}
           <View
-            className="absolute left-[121px] top-[5px]"
+            className="absolute left-[122px] top-[1.3px]"
             style={{ zIndex: 2 }}
           >
             <Image
               source={require("../assets/images/Rectangle 5 (1).png")}
-              className="w-[186px] h-[106px]"
+              style={{ width: 184, height: 106 }}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
             />
           </View>
           <View
-            className="absolute right-[65px] top-[19px]"
+            className="absolute right-[69.5px] top-[19.2px]"
             style={{ zIndex: 5 }}
           >
-            <Image source={require("../assets/images/Polygon 2.png")} />
+            <Image
+              source={require("../assets/images/Polygon 2.png")}
+              style={{ width: 38.73, height: 70 }}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
+            />
           </View>
           <View
-            className="absolute left-[62px] top-[17px]"
+            className="absolute left-[67.5px] top-[13px]"
             style={{ zIndex: 5 }}
           >
-            <Image source={require("../assets/images/Polygon 1.png")} />
+            <Image
+              source={require("../assets/images/Polygon 1.png")}
+              style={{ width: 38.73, height: 81.41 }}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
+            />
           </View>
           <View
-            className="absolute left-[98.9px] top-[4.5px]"
+            className="absolute left-[103.9px] top-[3.2px]"
             style={{ zIndex: 5 }}
           >
-            <Image source={require("../assets/images/Rectangle 3.png")} />
+            <Image
+              source={require("../assets/images/Rectangle 3.png")}
+              style={{ width: 19.76, height: 66.34 }}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
+            />
           </View>
           <View
-            className="absolute right-[98.9px] top-[4.5px]"
+            className="absolute right-[103.7px] top-[5.9px]"
             style={{ zIndex: 5 }}
           >
-            <Image source={require("../assets/images/Rectangle 4.png")} />
+            <Image
+              source={require("../assets/images/Rectangle 4.png")}
+              style={{ width: 19.76, height: 66.34 }}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
+            />
           </View>
         </Animated.View>
       </View>
